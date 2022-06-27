@@ -17,16 +17,12 @@ public class Main {
         multipleThreadConsumers.forEach((MultipleThreadConsumer consumer) ->
                 consumer.start());
         int consumerIds = multipleThreadConsumers.size();
-        TriggerTask trigger = new TriggerTask(multipleThreadConsumers.size());
-        boolean isPattern = false;
         int taskType = 0;
-
-
-        KafkaConsumer<String, String> c = Utility.startUpConsumer(-1, isPattern).getConsumer();
+        TriggerTask trigger = new TriggerTask(multipleThreadConsumers.size());
 
         for(int i = 0; i < 20; i++) {
             System.out.println("round "+i);
-            taskType = r.nextInt(3);
+            taskType = r.nextInt(4);
             if(taskType == 0) {
                 trigger.killConsumer(multipleThreadConsumers);
             }
@@ -37,10 +33,10 @@ public class Main {
             }
             else if(taskType == 2) {
                 trigger.modifyPartitionsCount();
-                TimeUnit.SECONDS.sleep(3);
-                c.enforceRebalance();
-                c.poll(Duration.ofSeconds(1));
-                System.out.println("enforce rebalance");
+                multipleThreadConsumers.get(0).setEnforce();
+            }
+            else if(taskType == 3) { //unsubscribe
+
             }
             TimeUnit.SECONDS.sleep(10);
         }

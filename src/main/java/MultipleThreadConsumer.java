@@ -15,10 +15,16 @@ public class MultipleThreadConsumer extends Thread{
     private final KafkaConsumer<String, String> consumer;
     private final Listener listener;
 
+    private boolean isEnforce;
+
+    private boolean isUnsubscribe;
+
     public MultipleThreadConsumer(int id, KafkaConsumer<String, String> consumer) {
         this.id = id;
         this.consumer = consumer;
         this.listener = new Listener(consumer, id);
+        isEnforce = false;
+        isUnsubscribe = false;
     }
 
     public KafkaConsumer<String, String> getConsumer() { return consumer; }
@@ -34,9 +40,17 @@ public class MultipleThreadConsumer extends Thread{
     /**
      * Doesn't support multi-thread access
      * */
-    public void unsubscribe() {
+    private void unsubscribe() {
         consumer.unsubscribe();
     }
+
+    private void enforce() {
+        consumer.enforceRebalance();
+    }
+
+    public void setEnforce() { isEnforce = true; }
+
+    public void setUnsubscribe() { isUnsubscribe = true; }
 
     @Override
     public void run() {
@@ -44,6 +58,14 @@ public class MultipleThreadConsumer extends Thread{
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 consumer.poll(Duration.ofSeconds(1));
+                if(isEnforce) {
+                    enforce();
+                    isEnforce = false;
+                }
+                else if(isUnsubscribe) {
+                    unsubscribe();
+                    isUnsubscribe = false;
+                }
             }
         } catch (Exception e) {
             System.out.println("Close consumer #" + id);
