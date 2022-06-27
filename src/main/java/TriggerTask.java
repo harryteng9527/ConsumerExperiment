@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -59,12 +60,35 @@ public class TriggerTask implements AutoCloseable {
         consumer.start();
         range += 1;
     }
+
     /**
      * the method 'unsubscibe' doesn't support multi-thread access, so it not work.
      * */
-    public void unsubscribe(ArrayList<MultipleThreadConsumer> consumers) {
+    public void unsubscribeAndSubscribe(ArrayList<MultipleThreadConsumer> consumers) {
+        int victim = selectVictim();
+        Set<String> topics = queryTopics();
+        consumers.get(victim).setUnsubscribe();
+        System.out.println("consumer #"+ consumers.get(victim) + "unsubscribe");
     }
 
+    private Set<String> queryTopics() {
+        Set<String> topics = null;
+        try {
+            topics = adminClient.listTopics().names().get();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return topics;
+    }
+    /**
+     * for re-subscribing
+     * */
+    private Set<String> selectTopic(Set<String> topics) {
+        Set<String> select = new HashSet<>();
+        for(int i = 0; i < 3; i++)
+            select.add(topics.iterator().next());
+        return select;
+    }
     /**
      * just a helper method to select victim consumer.
      * @return the number id of the consumer
@@ -85,6 +109,9 @@ public class TriggerTask implements AutoCloseable {
 
         return topicPartition;
     }
+    /**
+     * random select a topic for increase partition count.
+     * */
     private Set<String> selectTopic() {
         Set<String> topics = Utility.findTopics();
         List<String> list = new ArrayList<>(topics);

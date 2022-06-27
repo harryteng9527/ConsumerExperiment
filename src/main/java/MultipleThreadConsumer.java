@@ -2,21 +2,18 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
  * Create multiple thread consumers
  * */
-public class MultipleThreadConsumer extends Thread{
+public class MultipleThreadConsumer extends Thread {
     private final int id;
     private final KafkaConsumer<String, String> consumer;
     private final Listener listener;
-
     private boolean isEnforce;
-
     private boolean isUnsubscribe;
 
     public MultipleThreadConsumer(int id, KafkaConsumer<String, String> consumer) {
@@ -27,7 +24,9 @@ public class MultipleThreadConsumer extends Thread{
         isUnsubscribe = false;
     }
 
-    public KafkaConsumer<String, String> getConsumer() { return consumer; }
+    public KafkaConsumer<String, String> getConsumer() {
+        return consumer;
+    }
 
     public void doSubscribe(Set<String> topics) {
         consumer.subscribe(topics, listener);
@@ -39,7 +38,7 @@ public class MultipleThreadConsumer extends Thread{
 
     /**
      * Doesn't support multi-thread access
-     * */
+     */
     private void unsubscribe() {
         consumer.unsubscribe();
     }
@@ -48,9 +47,13 @@ public class MultipleThreadConsumer extends Thread{
         consumer.enforceRebalance();
     }
 
-    public void setEnforce() { isEnforce = true; }
+    public void setEnforce() {
+        isEnforce = true;
+    }
 
-    public void setUnsubscribe() { isUnsubscribe = true; }
+    public void setUnsubscribe() {
+        isUnsubscribe = true;
+    }
 
     @Override
     public void run() {
@@ -58,13 +61,13 @@ public class MultipleThreadConsumer extends Thread{
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 consumer.poll(Duration.ofSeconds(1));
-                if(isEnforce) {
+                if (isEnforce) {
                     enforce();
                     isEnforce = false;
-                }
-                else if(isUnsubscribe) {
+                } else if (isUnsubscribe) {
                     unsubscribe();
                     isUnsubscribe = false;
+                    doSubscribe(parseTopic(Utility.findTopics()));
                 }
             }
         } catch (Exception e) {
@@ -73,5 +76,16 @@ public class MultipleThreadConsumer extends Thread{
         } finally {
             consumer.close();
         }
+    }
+
+    private Set<String> parseTopic(Set<String> topics) {
+        ArrayList<String> list = new ArrayList<>();
+        topics.forEach((v) -> {
+            list.add(v);
+        });
+
+        topics.remove(list.get(0));
+        topics.remove(list.get(2));
+        return topics;
     }
 }
