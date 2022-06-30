@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -34,6 +35,14 @@ public class TriggerTask implements AutoCloseable {
         adminClient = Utility.createAdminClient();
     }
 
+    public void killConsumers(ArrayList<MultipleThreadConsumer> consumers) throws InterruptedException {
+        int size = consumers.size();
+        for(int i = 0; i < size; i++) {
+            consumers.get(i).interrupt();
+            TimeUnit.SECONDS.sleep(10);
+        }
+    }
+
     /**
     *  specify the unlucky consumer to kill.
     * */
@@ -46,7 +55,7 @@ public class TriggerTask implements AutoCloseable {
      * */
     public void killConsumer(ArrayList<MultipleThreadConsumer> consumers) {
         int victim = selectVictim();
-        System.out.println("Kill consumer #"+victim);
+        System.out.println("Kill consumer #"+consumers.get(victim).getId());
         consumers.get(victim).interrupt();
         range -= 1;
     }
@@ -68,7 +77,7 @@ public class TriggerTask implements AutoCloseable {
         int victim = selectVictim();
         Set<String> topics = queryTopics();
         consumers.get(victim).setUnsubscribe();
-        System.out.println("consumer #"+ consumers.get(victim) + "unsubscribe");
+        System.out.println("consumer #"+ consumers.get(victim).getId() + "unsubscribe");
     }
 
     private Set<String> queryTopics() {

@@ -7,9 +7,9 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
-    private static final int threadNumber = 8;
+    private static final int threadNumber = 15;
 
-    private static boolean isPattern = false;
+    private static boolean isPattern = true;
 
     public static void main(String[] args) throws InterruptedException {
         Random r = new Random(System.currentTimeMillis());
@@ -20,11 +20,22 @@ public class Main {
         int taskType = 0;
         TriggerTask trigger = new TriggerTask(multipleThreadConsumers.size());
 
-        for(int i = 0; i < 20; i++) {
+        TimeUnit.SECONDS.sleep(10);
+        trigger.killConsumers(multipleThreadConsumers);
+
+/*
+        TimeUnit.SECONDS.sleep(10);
+        multipleThreadConsumers.get(4).setEnforce();
+        TimeUnit.SECONDS.sleep(100);
+  */
+        /*
+        for(int i = 1; i < 51; i++) {
             System.out.println("round "+i);
             taskType = r.nextInt(4);
             if(taskType == 0) {
-                trigger.killConsumer(multipleThreadConsumers);
+                if(multipleThreadConsumers.size() > 1)
+                    trigger.killConsumer(multipleThreadConsumers);
+                else continue;
             }
             else if(taskType == 1) {
                 System.out.println("add consumer"+ consumerIds + " into the group");
@@ -32,19 +43,27 @@ public class Main {
                 consumerIds++;
             }
             else if(taskType == 2) {
-                trigger.modifyPartitionsCount();
-                multipleThreadConsumers.get(0).setEnforce();
+                trigger.modifyPartitionsCount();*/
+                //TODO
+                /*
+                multipleThreadConsumers.forEach((v) -> {
+                    v.setEnforce();
+                });
+                 */
+          /*      multipleThreadConsumers.get(0).setEnforce();
             }
-            else if(taskType == 3) { //unsubscribe
 
+            else if(taskType == 3) { //unsubscribe
+                trigger.unsubscribeAndSubscribe(multipleThreadConsumers);
             }
-            TimeUnit.SECONDS.sleep(10);
+
+            TimeUnit.SECONDS.sleep(20);
         }
-        /*
+        */
+
         for(MultipleThreadConsumer consumer : multipleThreadConsumers) {
             consumer.join();
         }
- */
         /*
         for(int i = 0; i < 8; i++) {
             System.out.println("round #"+i);

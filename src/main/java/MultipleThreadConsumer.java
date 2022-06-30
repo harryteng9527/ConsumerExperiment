@@ -2,7 +2,6 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -55,12 +54,13 @@ public class MultipleThreadConsumer extends Thread {
         isUnsubscribe = true;
     }
 
+    public long getId() { return id;}
     @Override
     public void run() {
         System.out.println("Consumer #" + id + " has start");
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                consumer.poll(Duration.ofSeconds(1));
+                consumer.poll(Duration.ofMillis(250));
                 if (isEnforce) {
                     enforce();
                     isEnforce = false;

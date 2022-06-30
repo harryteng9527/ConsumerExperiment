@@ -3,6 +3,8 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.RoundRobinAssignor;
+import org.apache.kafka.clients.consumer.StickyAssignor;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ import java.util.regex.Pattern;
 public class Utility {
     private static final String bootstrapServer = "192.168.103.68:11873";
     private static final String groupId = "wllll";
+    private static final String strategy = StickyAssignor.class.getName();
 
     private static String pattern = "hoo.*|test*.*";
     public static Map<Integer, ArrayList<DownTime>> timeMap = new HashMap<>();
@@ -33,6 +36,7 @@ public class Utility {
         prop.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,"earliest");
         prop.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         prop.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        prop.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, strategy);
 
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(prop);
 

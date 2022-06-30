@@ -30,13 +30,10 @@ public class Listener implements ConsumerRebalanceListener {
         Duration duration = Duration.ofMillis(assignedTime - revokedTime);
         DownTime downTime = new DownTime(duration, consumer.groupMetadata().generationId());
         downTimes.add(downTime);
-        if(id != -1)
-            Utility.timeMap.put(id, downTimes);
-        //System.out.println("assignment = " + consumer.assignment());
+        Utility.timeMap.put(id, downTimes);
     }
     @Override
     public void onPartitionsLost(Collection<TopicPartition> partitions){
         System.out.println("consumer #" + id + " in lost");
-
     }
 }
